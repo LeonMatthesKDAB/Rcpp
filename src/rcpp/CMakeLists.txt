@@ -1,0 +1,27 @@
+include(GNUInstallDirs)
+
+set(HEADERS
+    rc.h
+    weak.h
+    )
+
+add_library(Rcpp INTERFACE ${HEADERS})
+
+set_property(TARGET Rcpp PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET Rcpp PROPERTY CXX_STANDARD 17)
+target_include_directories(Rcpp INTERFACE 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+    $<INSTALL_INTERFACE:include>
+    )
+
+install (
+    TARGETS Rcpp
+    EXPORT Rcpp
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Rcpp)
+
+install (EXPORT Rcpp DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Rcpp NAMESPACE Rcpp:: FILE RcppTargets.cmake)
+
