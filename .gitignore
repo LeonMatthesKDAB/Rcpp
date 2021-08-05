@@ -44,8 +44,10 @@ Thumbs.db
 # Vim temporary files
 .*.swp
 
-# clangd cache
+# clangd
 .cache/
+compile_commands.json
+
 
 # Visual Studio generated files
 *.ib_pdb_index
