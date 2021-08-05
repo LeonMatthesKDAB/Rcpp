@@ -6,49 +6,17 @@
 #include <rcpp/rc.h>
 #include <rcpp/weak.h>
 
-class InstanceCounter
-{
-public:
-    InstanceCounter()
-    {
-        instances++;
-    }
-
-    InstanceCounter(int initial_value)
-        : InstanceCounter()
-    {
-        value = initial_value;
-    }
-
-    ~InstanceCounter()
-    {
-        instances--;
-    }
-
-    InstanceCounter(const InstanceCounter &)
-    {
-        instances++;
-        copies++;
-    }
-
-    // a marker value to differentiate between different instances
-    int value = 0;
-
-    static std::size_t instances;
-    static std::size_t copies;
-};
-
-std::size_t InstanceCounter::instances = 0;
-std::size_t InstanceCounter::copies = 0;
+#include <common/InstanceCounter.h>
+#include <common/MemoryGuard.h>
 
 using namespace Rcpp;
-
-#define REQUIRE_INSTANCES(X) REQUIRE(InstanceCounter::instances == (X));
 
 TEST_CASE("Weak")
 {
     SUBCASE("Can be constructed from an Rc")
     {
+        MemoryGuard guard;
+
         Weak<InstanceCounter> weak;
         REQUIRE(!weak.lock());
 
@@ -64,6 +32,8 @@ TEST_CASE("Weak")
 
     SUBCASE("Does not keep the instance alive")
     {
+        MemoryGuard guard;
+
         Weak<InstanceCounter> weak;
         {
             auto rc = make_rc<InstanceCounter>();
@@ -78,6 +48,8 @@ TEST_CASE("Weak")
 
     SUBCASE("Can be locked to an Rc")
     {
+        MemoryGuard guard;
+
         Weak<InstanceCounter> weak;
 
         auto rc = make_rc<InstanceCounter>(5);
@@ -93,6 +65,8 @@ TEST_CASE("Weak")
 
     SUBCASE("can be copied")
     {
+        MemoryGuard guard;
+
         Weak<InstanceCounter> weak;
         REQUIRE_INSTANCES(0);
         {
@@ -114,6 +88,8 @@ TEST_CASE("Weak")
 
     SUBCASE("can be moved")
     {
+        MemoryGuard guard;
+
         Weak<InstanceCounter> weak;
         REQUIRE(!weak.lock());
         {

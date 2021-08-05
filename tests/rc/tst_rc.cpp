@@ -4,40 +4,8 @@
 
 #include <rcpp/rc.h>
 
-class InstanceCounter
-{
-public:
-    InstanceCounter()
-    {
-        instances++;
-    }
-
-    InstanceCounter(int initial_value)
-        : InstanceCounter()
-    {
-        value = initial_value;
-    }
-
-    ~InstanceCounter()
-    {
-        instances--;
-    }
-
-    InstanceCounter(const InstanceCounter &)
-    {
-        instances++;
-        copies++;
-    }
-
-    // a marker value to differentiate between different instances
-    int value = 0;
-
-    static std::size_t instances;
-    static std::size_t copies;
-};
-
-std::size_t InstanceCounter::instances = 0;
-std::size_t InstanceCounter::copies = 0;
+#include <common/InstanceCounter.h>
+#include <common/MemoryGuard.h>
 
 using namespace Rcpp;
 
@@ -49,12 +17,15 @@ TEST_CASE("Rc")
 {
     SUBCASE("Can be default constructed")
     {
+        MemoryGuard guard;
+
         Rc<int> rc;
         REQUIRE(!rc);
     }
 
     SUBCASE("A single Rc destructs the reference counted entity")
     {
+        MemoryGuard guard;
         {
             auto rc = make_rc<InstanceCounter>();
             REQUIRE_INSTANCES(1);
@@ -64,6 +35,8 @@ TEST_CASE("Rc")
 
     SUBCASE("An Rc can be copied")
     {
+        MemoryGuard guard;
+
         {
             Rc<InstanceCounter> rc;
             REQUIRE_INSTANCES(0);
@@ -84,6 +57,8 @@ TEST_CASE("Rc")
 
     SUBCASE("An Rc can be moved")
     {
+        MemoryGuard guard;
+
         {
             Rc<InstanceCounter> rc;
             REQUIRE(!rc);
@@ -108,6 +83,8 @@ TEST_CASE("Rc")
 
     SUBCASE("The value of an Rc can be accessed")
     {
+        MemoryGuard guard;
+
         auto rc = make_rc<InstanceCounter>(5);
 
         REQUIRE(rc->value == 5);
@@ -116,6 +93,8 @@ TEST_CASE("Rc")
 
     SUBCASE("Multiple Rcs refer to the same object")
     {
+        MemoryGuard guard;
+
         auto rc = make_rc<InstanceCounter>(5);
         auto secondRc = rc;
 

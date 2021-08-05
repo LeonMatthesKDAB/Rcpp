@@ -3,6 +3,8 @@ project(Rcpp-Tests)
 
 include_directories(./doctest)
 
+add_subdirectory(./common)
+
 add_subdirectory(rc)
 add_subdirectory(weak)
 add_subdirectory(prc)

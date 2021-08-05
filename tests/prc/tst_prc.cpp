@@ -5,71 +5,18 @@
 
 #include <rcpp/prc.h>
 
-class Base
-{
-public:
-    virtual ~Base() = default;
-
-    virtual bool isBase()
-    {
-        return true;
-    }
-};
-
-class InstanceCounter : public Base
-{
-public:
-    InstanceCounter()
-    {
-        instances++;
-    }
-
-    InstanceCounter(int initial_value)
-        : InstanceCounter()
-    {
-        value = initial_value;
-    }
-
-    virtual ~InstanceCounter()
-    {
-        instances--;
-    }
-
-    InstanceCounter(const InstanceCounter &)
-    {
-        instances++;
-        copies++;
-    }
-
-    bool isBase() override
-    {
-        return false;
-    }
-
-    // a marker value to differentiate between different instances
-    int value = 0;
-
-    static std::size_t instances;
-    static std::size_t copies;
-};
-
-class Derived : public InstanceCounter
-{
-public:
-    virtual ~Derived() = default;
-};
-
-std::size_t InstanceCounter::instances = 0;
-std::size_t InstanceCounter::copies = 0;
+#include <common/InstanceCounter.h>
+#include <common/MemoryGuard.h>
 
 using namespace Rcpp;
 
-#define REQUIRE_INSTANCES(X) REQUIRE(InstanceCounter::instances == (X));
 
 TEST_CASE("Prc")
 {
     SUBCASE("Can be default constructed")
     {
+        MemoryGuard guard;
+
         REQUIRE_INSTANCES(0);
 
         Prc<int> prc;
@@ -80,6 +27,8 @@ TEST_CASE("Prc")
 
     SUBCASE("Can be constructed from an RC")
     {
+        MemoryGuard guard;
+
         {
             REQUIRE_INSTANCES(0);
 
@@ -95,6 +44,8 @@ TEST_CASE("Prc")
 
     SUBCASE("Can be move constructed from an RC")
     {
+        MemoryGuard guard;
+
         {
             REQUIRE_INSTANCES(0);
 
@@ -111,6 +62,8 @@ TEST_CASE("Prc")
 
     SUBCASE("Can be copied")
     {
+        MemoryGuard guard;
+
         {
             Prc<InstanceCounter> prc;
             REQUIRE_INSTANCES(0);
@@ -131,6 +84,8 @@ TEST_CASE("Prc")
 
     SUBCASE("Can be moved")
     {
+        MemoryGuard guard;
+
         {
             Prc<InstanceCounter> prc;
             REQUIRE(!prc);
@@ -155,6 +110,8 @@ TEST_CASE("Prc")
 
     SUBCASE("The value of a Prc can be accessed")
     {
+        MemoryGuard guard;
+
         auto prc = make_prc<InstanceCounter>(5);
 
         REQUIRE(prc->value == 5);
@@ -163,6 +120,8 @@ TEST_CASE("Prc")
 
     SUBCASE("Multiple Prcs refer to the same object")
     {
+        MemoryGuard guard;
+
         auto prc = make_prc<InstanceCounter>(5);
         auto secondPrc = prc;
 
@@ -180,6 +139,8 @@ TEST_CASE("Prc casting")
 {
     SUBCASE("A Prc can be static cast to it's base class")
     {
+        MemoryGuard guard;
+
         {
             REQUIRE_INSTANCES(0);
 
